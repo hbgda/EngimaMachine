@@ -10,9 +10,10 @@ use crate::reflector::ReflectorVersion;
 
 fn main() {
     let mut enigma: Enigma = Enigma::new(
-                                vec![(0, 'Z', 'Z'), (0, 'Z', 'A')], 
+                                vec![(0, 'A', 'Z')], 
                                 ReflectorVersion::B, 
-                                &[('A', 'C')]);
+                                &[]);
+                    
     for _ in 0..4 {
         let _cyphered = enigma.encrypt_char('A');
         println!("Source: A | Cyphered: {_cyphered}");

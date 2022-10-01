@@ -1,10 +1,11 @@
-use std::{collections::HashMap, cell::Ref};
+use std::{collections::HashMap};
 
 pub enum ReflectorVersion {
     B,
     C,
     BD,
-    CD
+    CD,
+    None
 }
 
 pub struct Reflector {
@@ -57,6 +58,9 @@ impl Reflector {
             }
             ReflectorVersion::BD => todo!(),
             ReflectorVersion::CD => todo!(),
+            ReflectorVersion::None => {
+                Reflector::new(String::from("None"), &[])
+            },
         }
     }
 }

@@ -19,12 +19,12 @@ impl Plugboard {
             _key_map: HashMap::new()
         };
 
-        for i in key_map {
-            if _plugboard._key_map.contains_key(&i.0) || _plugboard._key_map.contains_key(&i.1) {
-                eprintln!("Invalid value passed for key_map {:#?}, key already exists.", i)
+        for key_pair in key_map {
+            if _plugboard._key_map.contains_key(&key_pair.0) || _plugboard._key_map.contains_key(&key_pair.1) {
+                eprintln!("Invalid value passed for key_map {:#?}, key already exists.", key_pair)
             }
-            _plugboard._key_map.insert(i.0, i.1);
-            _plugboard._key_map.insert(i.1, i.0);
+            _plugboard._key_map.insert(key_pair.0, key_pair.1);
+            _plugboard._key_map.insert(key_pair.1, key_pair.0);
         }
 
         _plugboard

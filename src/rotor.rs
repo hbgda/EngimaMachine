@@ -19,8 +19,8 @@ pub struct Rotor {
     _id: String,
     _key_map: String,
     _step_chars: HashSet<char>,
-    _ring_setting: u8,
-    _current_position: u8,
+    _ring_setting: u8,      // 0-25 | A-Z
+    _current_position: u8,  // 0-25 | A-Z
 }
 
 impl Rotor {
@@ -38,7 +38,7 @@ impl Rotor {
         // println!("\n| Source: {source}");
         
         let char_u8: u8 = char_to_u8(source);
-        let index: usize = ((char_u8 + self._current_position) % 26) as usize;
+        let index: usize = ((char_u8 + self._current_position + self._ring_setting) % 26) as usize;
         // println!("| Char: {char_u8} Index: {index}");
 
         let cyphered: char = self._key_map.as_bytes()[index] as char;
@@ -48,8 +48,10 @@ impl Rotor {
 }
 
 impl Rotor {
-    pub fn should_step(&self, position: char) -> bool {
-        self._step_chars.contains(&position)
+    pub fn should_step_next(&self) -> bool {
+        self._step_chars.contains(
+            &u8_to_char(self._current_position)
+        )
     }
 
     pub fn get_position(&self) -> char {

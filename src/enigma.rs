@@ -3,7 +3,7 @@ use crate::rotor::{Rotor, RotorVersion};
 use crate::reflector::{Reflector, ReflectorVersion};
 
 pub struct Enigma {
-    _rotors: Vec<Rotor>,
+    _rotors: Vec<Rotor>,    // Rotors stored in reverse for convenience, index 0 is right most rotor.
     _reflector: Reflector,
     _plugboard: Plugboard
 }
@@ -16,22 +16,8 @@ impl Enigma {
 
 
         for i in 0..self._rotors.len() {
-            let _rotor_pos: char = self._rotors[i].get_position();
-            print!("| Rotor {i} [OldPosition: {_rotor_pos}]");
-            if i == 0 {
-                // First rotor will always increment.
-                _current_cyphered_char = self._rotors[0].cypher_char_and_increment(_current_cyphered_char);
-            }
-            else {
-                _current_cyphered_char = self._rotors[i].get_cyphered_char(_current_cyphered_char);
-            }
-            if i < self._rotors.len() - 1 {
-                if self._rotors[i + 1].should_step(self._rotors[i].get_position()) {
-                    self._rotors[i + 1].increment_position();
-                }
-            }    
-            let _rotor_pos: char = self._rotors[i].get_position();
-            print!("| Rotor {i} [NewPosition: {_rotor_pos}]\n");        
+            self.increment_rotors();
+            _current_cyphered_char = self._rotors[i].get_cyphered_char(_current_cyphered_char);   
         }
 
         _current_cyphered_char = self._reflector.get_char(_current_cyphered_char);
@@ -43,6 +29,23 @@ impl Enigma {
         _current_cyphered_char = self._plugboard.get_char(_current_cyphered_char);
 
         _current_cyphered_char
+    }
+
+    pub fn increment_rotors(&mut self) {
+        for i in 0..self._rotors.len() {
+            if i == 0 {
+                self._rotors[i].increment_position();
+            }
+
+            // If next rotor exists and current rotor is at turnover point, incrememnt next rotor.
+            if i < self._rotors.len() - 1 && self._rotors[i].should_step_next() {
+                println!("Stepping next rotor.");
+                self._rotors[i + 1].increment_position();
+            }
+            else {
+                break;
+            }
+        }
     }
 }
 
