@@ -14,9 +14,9 @@ impl Enigma {
 
         _current_cyphered_char = self._plugboard.get_char(_current_cyphered_char);
 
+        self.increment_rotors();
 
         for i in 0..self._rotors.len() {
-            self.increment_rotors();
             _current_cyphered_char = self._rotors[i].get_cyphered_char(_current_cyphered_char);   
         }
 
