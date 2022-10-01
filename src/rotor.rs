@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use crate::utils::*;
 
 pub enum RotorVersion {
@@ -17,7 +17,7 @@ pub enum RotorVersion {
 #[derive(Debug)]
 pub struct Rotor {
     _id: String,
-    _key_map: String,
+    _key_map: HashMap<char, char>,
     _step_chars: HashSet<char>,
     _ring_setting: u8,      // 0-25 | A-Z
     _current_position: u8,  // 0-25 | A-Z
@@ -35,15 +35,24 @@ impl Rotor {
     }
 
     pub fn get_cyphered_char(&self, source: char) -> char {
-        // println!("\n| Source: {source}");
-        
-        let char_u8: u8 = char_to_u8(source);
-        let index: usize = ((char_u8 + self._current_position + self._ring_setting) % 26) as usize;
-        // println!("| Char: {char_u8} Index: {index}");
+        let offset_char = add_char(source, self._current_position + self._ring_setting);
 
-        let cyphered: char = self._key_map.as_bytes()[index] as char;
-        // println!("| Cyphered: {cyphered}\n");
-        cyphered
+        match self._key_map.get(&offset_char) {
+            Some(mapped) => subtract_char(*mapped, self._current_position + self._ring_setting),
+            None => source
+        }
+    }
+
+    pub fn get_cyphered_char_reflect(&self, source: char) -> char {
+        let offset_char = add_char(source, self._current_position + self._ring_setting);
+
+        match self._key_map.iter().find(|&pair| pair.1 == &offset_char) {
+            Some(mapped) => subtract_char(*mapped.0, self._current_position + self._ring_setting),
+            None => {
+                eprintln!("Couldn't find char {offset_char}");
+                source
+            }
+        }
     }
 }
 
@@ -75,13 +84,21 @@ impl Rotor {
             panic!();
         }
 
-        Rotor {
+        let mut _rotor = Rotor {
             _id: id,
-            _key_map: key_map,
+            _key_map: HashMap::new(),
             _step_chars: step_chars,
             _ring_setting: (ring_setting as u8 - b'A') % 26,
             _current_position: (position as u8 - b'A') % 26
+        };
+
+        for (index, mapped) in key_map.chars().enumerate() {
+            let _origin_char: char = u8_to_char(index as u8);
+            _rotor._key_map.insert(_origin_char, mapped);
+            println!("Origin: {_origin_char} Mapped: {mapped}");
         }
+
+        _rotor
     }
 }
 

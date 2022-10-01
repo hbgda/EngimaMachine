@@ -10,23 +10,33 @@ pub struct Enigma {
 
 impl Enigma {
     pub fn encrypt_char(&mut self, source: char) -> char {
+
+        println!("| Source: {source}");
+        
         let mut _current_cyphered_char: char = source.to_ascii_uppercase();
 
         _current_cyphered_char = self._plugboard.get_char(_current_cyphered_char);
+
+        println!("| Plugboard 1: {_current_cyphered_char}");
 
         self.increment_rotors();
 
         for i in 0..self._rotors.len() {
             _current_cyphered_char = self._rotors[i].get_cyphered_char(_current_cyphered_char);   
+            println!("| Rotor [{i}]: {_current_cyphered_char}");
         }
 
         _current_cyphered_char = self._reflector.get_char(_current_cyphered_char);
+        println!("| Reflector: {_current_cyphered_char}");
 
         for i in (0..self._rotors.len()).rev() {
-            _current_cyphered_char = self._rotors[i].get_cyphered_char(_current_cyphered_char);
+            _current_cyphered_char = self._rotors[i].get_cyphered_char_reflect(_current_cyphered_char);
+            println!("| R-Rotor [{i}]: {_current_cyphered_char}");
         }
 
         _current_cyphered_char = self._plugboard.get_char(_current_cyphered_char);
+
+        println!("| Plugboard 2: {_current_cyphered_char}");
 
         _current_cyphered_char
     }
@@ -46,6 +56,10 @@ impl Enigma {
                 break;
             }
         }
+    }
+
+    pub fn get_rotor_state(&self) -> String {
+        self._rotors.iter().map(|rot| rot.get_position()).rev().collect()
     }
 }
 
