@@ -9,8 +9,18 @@ pub struct Enigma {
 }
 
 impl Enigma {
+
+    pub fn encrypt_string(&mut self, source: &String) -> String {
+        source.chars()
+            .map(|_char| self.encrypt_char(_char)).collect()
+    }
+
     pub fn encrypt_char(&mut self, source: char) -> char {
         
+        if !source.is_alphabetic() {
+            return source;
+        }
+
         // Convert to uppercase
         let mut cyphered_char: char = source.to_ascii_uppercase();
 
