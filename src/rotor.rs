@@ -25,27 +25,31 @@ pub struct Rotor {
 
 impl Rotor {
     
-    pub fn cypher_char_and_increment(&mut self, source: char) -> char {
-        self.increment_position();
-        self.get_cyphered_char(source)
-    }
-
+    // Increment current position
     pub fn increment_position(&mut self) {
         self._current_position = (self._current_position + 1) % 26
     }
 
-    pub fn get_cyphered_char(&self, source: char) -> char {
+    // Cypher the given char, accounting for ring setting and offset.
+    // In an actual enigma, the ring setting refers to the offset of the internal wiring of each Rotor.
+    pub fn cypher_char(&self, source: char) -> char {
+
+        // Offset source char by adding the current position and the ring setting, add_char will account for any overflow.
         let offset_char = add_char(source, self._current_position + self._ring_setting);
 
+        // If the resulting offset_char exists in the enigmas key map return its associated value, this would be whatever the letter cyphers to normally
+        // If the character does not have an associated value just return itself, this shouldn't happen.
         match self._key_map.get(&offset_char) {
             Some(mapped) => subtract_char(*mapped, self._current_position + self._ring_setting),
             None => source
         }
     }
 
-    pub fn get_cyphered_char_reflect(&self, source: char) -> char {
+    // Similar to cypher_char, this instead cyphers in the opposite direction
+    pub fn reflect_char(&self, source: char) -> char {
         let offset_char = add_char(source, self._current_position + self._ring_setting);
 
+        // Find the first value equal to offset_char, the associated key will then be what is needed.
         match self._key_map.iter().find(|&pair| pair.1 == &offset_char) {
             Some(mapped) => subtract_char(*mapped.0, self._current_position + self._ring_setting),
             None => {
@@ -57,6 +61,9 @@ impl Rotor {
 }
 
 impl Rotor {
+
+    // Return true if the Rotor is at a point where a subsequent Rotor should increment.
+    // In an actual enigma machine there would be a notch that triggers the ratchet teeth of the left Rotor.
     pub fn should_step_next(&self) -> bool {
         self._step_chars.contains(
             &u8_to_char(self._current_position)
@@ -66,15 +73,12 @@ impl Rotor {
     pub fn get_position(&self) -> char {
         u8_to_char(self._current_position)
     }
-
-    pub fn set_ring_setting(&mut self, setting: u8) {
-        self._ring_setting = setting
-    }
 }
 
 impl Rotor {
     pub fn new(id: String, key_map: String, step_chars: HashSet<char>, ring_setting: char, position: char) -> Self {
 
+        // Check if ring_setting and position are valid alphabetical characters
         if !ring_setting.is_alphabetic() {
             eprintln!("ring_setting invalid, {ring_setting} not alphabetic");
             panic!();
@@ -88,14 +92,16 @@ impl Rotor {
             _id: id,
             _key_map: HashMap::new(),
             _step_chars: step_chars,
-            _ring_setting: (ring_setting as u8 - b'A') % 26,
-            _current_position: (position as u8 - b'A') % 26
+            _ring_setting: char_to_u8(ring_setting),
+            _current_position: char_to_u8(position)
         };
 
+        // Iterate over characters in the key_map String and create a HashMap entry from its index and value
+        // index is converted to an alphabetical character from A-Z depending on its value, e.g. 0 = A
+        // To be clear a String is being used here for no particular reason other than it's what I used in the inital stages of mapping the program and I cba to change it
         for (index, mapped) in key_map.chars().enumerate() {
             let _origin_char: char = u8_to_char(index as u8);
             _rotor._key_map.insert(_origin_char, mapped);
-            println!("Origin: {_origin_char} Mapped: {mapped}");
         }
 
         _rotor
@@ -103,6 +109,8 @@ impl Rotor {
 }
 
 impl Rotor {
+
+    // Pre-configured Rotor versions
     pub fn from_version(version: RotorVersion, ring_setting: char, position: char) -> Self {
         match version {
             RotorVersion::I => {

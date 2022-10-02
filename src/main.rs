@@ -4,13 +4,14 @@ pub mod utils;
 pub mod reflector;
 pub mod plugboard;
 
-use crate::enigma::Enigma;
-use crate::reflector::ReflectorVersion;
+use enigma::Enigma;
+use rotor::RotorVersion;
+use reflector::ReflectorVersion;
 
 
 fn main() {
     let mut enigma: Enigma = Enigma::new(
-                                vec![(0, 'A', 'Z'), (1, 'A', 'B'), (2, 'A', 'A')], 
+                                vec![(RotorVersion::I, 'A', 'Z'), (RotorVersion::II, 'A', 'B'), (RotorVersion::III, 'A', 'A')], 
                                 ReflectorVersion::B, 
                                 &[]);
     let test_char = 'A';

@@ -10,46 +10,46 @@ pub struct Enigma {
 
 impl Enigma {
     pub fn encrypt_char(&mut self, source: char) -> char {
-
-        println!("| Source: {source}");
         
-        let mut _current_cyphered_char: char = source.to_ascii_uppercase();
+        // Convert to uppercase
+        let mut cyphered_char: char = source.to_ascii_uppercase();
 
-        _current_cyphered_char = self._plugboard.get_char(_current_cyphered_char);
+        // First route char through plugboard
+        cyphered_char = self._plugboard.get_char(cyphered_char);
 
-        println!("| Plugboard 1: {_current_cyphered_char}");
-
+        // Increment rotors if necessary
         self.increment_rotors();
 
-        for i in 0..self._rotors.len() {
-            _current_cyphered_char = self._rotors[i].get_cyphered_char(_current_cyphered_char);   
-            println!("| Rotor [{i}]: {_current_cyphered_char}");
+        // Iterate over each rotor and cypher the current state of cyphered_char,
+        // An enigma machine will go from right to left, in this case the rotors are stored in the reverse order for convenience
+        for rotor in self._rotors.iter() {
+            cyphered_char = rotor.cypher_char(cyphered_char);   
         }
 
-        _current_cyphered_char = self._reflector.get_char(_current_cyphered_char);
-        println!("| Reflector: {_current_cyphered_char}");
+        // Route char through reflector
+        cyphered_char = self._reflector.get_char(cyphered_char);
 
-        for i in (0..self._rotors.len()).rev() {
-            _current_cyphered_char = self._rotors[i].get_cyphered_char_reflect(_current_cyphered_char);
-            println!("| R-Rotor [{i}]: {_current_cyphered_char}");
+        // Whatever comes from the reflector is then sent back through the rotors and cyphered in reverse
+        for rotor in self._rotors.iter().rev() {
+            cyphered_char = rotor.reflect_char(cyphered_char);
         }
 
-        _current_cyphered_char = self._plugboard.get_char(_current_cyphered_char);
+        // Finally, route the cyphered_char through the plugboard again to get the end encrypted char
+        cyphered_char = self._plugboard.get_char(cyphered_char);
 
-        println!("| Plugboard 2: {_current_cyphered_char}");
-
-        _current_cyphered_char
+        cyphered_char
     }
 
     pub fn increment_rotors(&mut self) {
         for i in 0..self._rotors.len() {
+            
+            // First rotor will increment on each key press, so always incrememnt if i is 0 
             if i == 0 {
                 self._rotors[i].increment_position();
             }
 
-            // If next rotor exists and current rotor is at turnover point, incrememnt next rotor.
+            // If next rotor exists and current rotor is at turnover point, increment next rotor.
             if i < self._rotors.len() - 1 && self._rotors[i].should_step_next() {
-                println!("Stepping next rotor.");
                 self._rotors[i + 1].increment_position();
             }
             else {
@@ -58,39 +58,29 @@ impl Enigma {
         }
     }
 
+    // Get the position of each rotor from left to right
     pub fn get_rotor_state(&self) -> String {
         self._rotors.iter().map(|rot| rot.get_position()).rev().collect()
     }
 }
 
 impl Enigma {
-    pub fn new(rotors: Vec<(u8, char, char)>, reflector: ReflectorVersion, plugboard: &[(char, char)]) -> Self {
+    pub fn new(rotors: Vec<(RotorVersion, char, char)>, reflector: ReflectorVersion, plugboard: &[(char, char)]) -> Self {
+        // Create template Enigma instance
         let mut _enigma = Enigma {
             _rotors: Vec::new(),
             _reflector: Reflector::from_version(reflector),
             _plugboard: Plugboard::new(plugboard)
         };
 
+        // Create Rotors from the configurations given
         for _rotor_info in rotors {
+            // Push Rotor to the Enigma instance
             _enigma._rotors.push({
-                let mut _rotor: Rotor = Rotor::from_version({
-                    let _rotor_num: u8 = _rotor_info.0;
-                    match _rotor_num {
-                        0 => RotorVersion::I,
-                        1 => RotorVersion::II,
-                        2 => RotorVersion::III,
-                        3 => RotorVersion::IV,
-                        4 => RotorVersion::V,
-                        5 => RotorVersion::VI,
-                        6 => RotorVersion::VII,
-                        7 => RotorVersion::VIII,
-                        _ => {
-                            eprintln!("Invalid Rotor {_rotor_num}, skipping.");
-                            continue;
-                        }
-                    }
-                }, _rotor_info.1.to_ascii_uppercase(), _rotor_info.2.to_ascii_uppercase());
-                println!("{:#?}", _rotor);
+                let mut _rotor: Rotor = Rotor::from_version(
+                    _rotor_info.0, 
+                    _rotor_info.1.to_ascii_uppercase(), 
+                    _rotor_info.2.to_ascii_uppercase());
                 _rotor
             })
         }
